@@ -1,9 +1,9 @@
 const config = {
     "sqldb": {
-        domain: 'METEORCOMMLAN',
+        domain: '',
         port: '',
-        user: 'svc-apps',
-        password: '|Security**+Locoq',
+        user: '',
+        password: '',
         server: 'localhost', 
         database: 'map'
     }
