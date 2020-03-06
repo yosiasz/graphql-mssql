@@ -1,7 +1,7 @@
 {
-  "name": "mccapigraphql",
+  "name": "graphql-mssql",
   "version": "1.0.0",
-  "description": "MCC GraphQL",
+  "description": "GraphQL with Microsoft SQL Server backend",
   "main": "server.js",
   "scripts": {
     "dev:server": "nodemon server.js"
