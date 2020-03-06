@@ -82,7 +82,7 @@ const RootQuery = new GraphQLObjectType({
                         let pool = await sql.connect(config.sqldb)
                         let result = await pool.request()
                         .input('projectid', sql.Int, null)                            
-                        .execute('projects_sp')
+                        .execute('dbo.projects_sp')
                         
                         sql.close();
                         pool.close();
@@ -94,7 +94,7 @@ const RootQuery = new GraphQLObjectType({
                     } catch (err) {
                         console.dir(err);
                         sql.close();
-                        pool.close();
+                        //pool.close();
                         // ... error checks
                     }
                 })()     

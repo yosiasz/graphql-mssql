@@ -9,6 +9,7 @@
   "author": "Josiah Solomon",
   "license": "ISC",
   "dependencies": {
+    "core-js": "^3.6.4",
     "express": "^4.16.4",
     "express-graphql": "^0.7.1",
     "graphql": "^14.1.1",
