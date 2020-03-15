@@ -35,6 +35,52 @@ const ProductType = new GraphQLObjectType({
     })
 });
 
+async function getProducts (productid) {
+    try {
+        let pool = await sql.connect(config.sqldb)
+        let result = await pool.request()
+        .input('productid', sql.Int, productid)                            
+        .execute('products_sp')
+        
+        sql.close();
+        pool.close();
+
+        //let projects = [];
+
+        products = result.recordsets[0];
+        
+        return products;
+
+    } catch (err) {
+        console.dir(err);
+        sql.close();
+        pool.close();
+        // ... error checks
+    }
+    
+};
+
+async function getProjects (productid) {
+    try {
+        let pool = await sql.connect(config.sqldb)
+        let result = await pool.request()
+        .input('projectid', sql.Int, productid)                            
+        .execute('projects_sp')
+        
+        sql.close();
+        pool.close();
+        
+        projects = result.recordsets[0]
+
+    } catch (err) {
+        console.dir(err);
+        sql.close();
+        pool.close();
+        // ... error checks
+    }
+    return projects;  
+};
+
 //root query
 const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType',
@@ -48,86 +94,30 @@ const RootQuery = new GraphQLObjectType({
                  },
             //resolve: this is where we get data from db/other source.     
             resolve(parentValue, args){   
-                //console.log(args);
-                (async function () {
-                    try {
-                        let pool = await sql.connect(config.sqldb)
-                        let result = await pool.request()
-                        // Stored procedure
-                        .input('projectid', sql.Int, args.projectid)                            
-                        .execute('dbo.projects_sp')
 
-                        sql.close();
-                        pool.close();
-    
-                        projects = result.recordsets[0];
-                        
-                    } catch (err) {
-                        console.dir(err);
-                        sql.close();
-                        pool.close();
-                        // ... error checks
-                    }
-                })() 
-                
-                return projects[0];
-                        
+                projects = getProjects(args.projectid);                  
             }
         } ,
         projects:{
             type: new GraphQLList(ProjectType),
+            args:{
+                projectid:{type:GraphQLInt}
+                },
             resolve(parentValue, args){
-                (async function () {
-                    try {
-                        let pool = await sql.connect(config.sqldb)
-                        let result = await pool.request()
-                        .input('projectid', sql.Int, null)                            
-                        .execute('dbo.projects_sp')
-                        
-                        sql.close();
-                        pool.close();
-    
-                        //let projects = [];
+                projects = getProjects(args.projectid);  
 
-                        projects = result.recordsets[0]
-
-                    } catch (err) {
-                        console.dir(err);
-                        sql.close();
-                        //pool.close();
-                        // ... error checks
-                    }
-                })()     
-                
-                return projects;          
+                return projects;
             }
         },
         products:{
             type: new GraphQLList(ProductType),
-            resolve(parentValue, args){
-                (async function () {
-                    try {
-                        let pool = await sql.connect(config.sqldb)
-                        let result = await pool.request()
-                        .input('productid', sql.Int, null)                            
-                        .execute('products_sp')
-                        
-                        sql.close();
-                        pool.close();
-    
-                        //let projects = [];
+            args:{
+                productid:{type:GraphQLInt}
+                },            
+            resolve(parentValue, args){  
+                products = getProducts(args.productid);  
 
-                        products = result.recordsets[0]
-
-                    } catch (err) {
-                        console.dir(err);
-                        sql.close();
-                        pool.close();
-                        // ... error checks
-                    }
-                })()     
-                
-                return products;          
+                return products;                      
             }
         }            
     }
@@ -137,7 +127,3 @@ const RootQuery = new GraphQLObjectType({
 module.exports = new  GraphQLSchema({
     query: RootQuery
 });
-
-
-                
-/*                    */
