@@ -12,8 +12,10 @@ if not exists(select 1 from sys.databases where name = 'graphql')
 		CREATE DATABASE graphql
 			 CONTAINMENT = NONE
 			 ON  PRIMARY 
+			 --Make sure you create the following location C:\DATA\, or change it to your choice
 			( NAME = N'graphql', FILENAME = N'C:\DATA\graphql.mdf' , SIZE = 8192KB , MAXSIZE = UNLIMITED, FILEGROWTH = 65536KB )
 			 LOG ON 
+			 --Make sure you create the following location C:\LOGS\, or change it to your choice
 			( NAME = N'graphql_log', FILENAME = N'C:\LOGS\graphql_log.ldf' , SIZE = 8192KB , MAXSIZE = 2048GB , FILEGROWTH = 65536KB )
 			 WITH CATALOG_COLLATION = DATABASE_DEFAULT
 			
@@ -25,9 +27,9 @@ go
 
 
 
-if SUSER_ID('sqlteam') IS NULL
+if SUSER_ID('graphql') IS NULL
 begin
-	CREATE LOGIN [sqlteam] WITH PASSWORD=N'sqlteam', 
+	CREATE LOGIN [graphql] WITH PASSWORD=N'graphql', 
 			DEFAULT_DATABASE=[master], 
 			DEFAULT_LANGUAGE=[us_english], 
 			CHECK_EXPIRATION=OFF, 
@@ -36,14 +38,14 @@ begin
 	end
 go
 
-  IF USER_ID('sqlteam') IS NULL
+  IF USER_ID('graphql') IS NULL
 	begin
-		CREATE USER [sqlteam] FOR LOGIN [sqlteam] WITH DEFAULT_SCHEMA=[dbo]
+		CREATE USER [graphql] FOR LOGIN [graphql] WITH DEFAULT_SCHEMA=[dbo]
 	end
 
-	exec sp_addrolemember db_datareader, [sqlteam] 
+	exec sp_addrolemember db_datareader, [graphql] 
 	go
-	exec sp_addrolemember db_datawriter, [sqlteam] 
+	exec sp_addrolemember db_datawriter, [graphql] 
 	go
 
 if OBJECT_ID('projects') is null
@@ -56,6 +58,22 @@ if OBJECT_ID('products') is null
 	create table dbo.products(productid int not null identity(1,1),
 	                          productname nvarchar(150) not null
 							  )
+	go
+
+if OBJECT_ID('users') is null
+	create table dbo.users(userid int not null identity(1,1),
+	                          username nvarchar(150) not null
+							  )
+	go
+
+insert into users(username)
+select top 10000 name as username
+  from sys.all_columns
+
+if OBJECT_ID('productusers') is null
+	create table dbo.productusers(userid int not null ,
+	                              productid int not null 
+							     )
 	go
 
 ;with src
@@ -90,6 +108,11 @@ select productname
 	where tgt.productname = src.productname)
 	go
 
+insert into productusers
+select top 5000 userid, p.productid
+ from dbo.users
+ cross apply (select productid From products where productname in ('GraphQL', 'Angular') ) p
+
   if exists(select 1 from sys.procedures where name = 'projects_sp')
 	begin
 		drop proc dbo.projects_sp
@@ -105,10 +128,11 @@ select productname
 		SELECT [projectid]
 				,[projectname]
 			FROM [dbo].[projects]
+			where @projectId is null or projectid = @projectId
 	end
 	go
 
-	grant execute on dbo.projects_sp to [sqlteam]
+	grant execute on dbo.projects_sp to [graphql]
 	go
 
   if exists(select 1 from sys.procedures where name = 'products_sp')
@@ -130,5 +154,5 @@ select productname
 	end
 	go
 
-	grant execute on dbo.products_sp to [sqlteam]
+	grant execute on dbo.products_sp to [graphql]
 	go

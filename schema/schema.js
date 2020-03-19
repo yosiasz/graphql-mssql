@@ -7,6 +7,9 @@ const sql = require('mssql');
 const config = require('../server/config.js');
 let projects= [];
 let products = [];
+let users = [];
+let productusers = [];
+
 //destructure
 const {
     GraphQLObjectType,
@@ -31,7 +34,19 @@ const ProductType = new GraphQLObjectType({
     name: 'Products',
     fields:() => ({
         productid: {type: GraphQLID},
-        productname: {type:GraphQLString}
+        productname: {type:GraphQLString},
+        productusers: {
+            type: new GraphQLList(UserType),
+            resolve: (parent, args) => getProductUsers(parent.productid)
+        }
+    })
+});
+
+const UserType = new GraphQLObjectType({
+    name: 'Users',
+    fields:() => ({
+        userid: {type: GraphQLID},
+        username: {type:GraphQLString}
     })
 });
 
@@ -60,6 +75,45 @@ async function getProducts (productid) {
     
 };
 
+async function getProductUsers (productid) {
+    try {
+        console.log('getProductUsers productid ->', productid);
+        let pool = await sql.connect(config.sqldb)
+        let result = await pool.request()
+        .query`select u.* from dbo.productusers p join dbo.users u on p.userid = u.userid where productid = ${productid}`;
+
+        sql.close();
+        pool.close();
+        
+        productusers = result.recordsets[0];
+    } catch (err) {
+        console.log('Error on getProductUsers', err);
+        sql.close();
+        pool.close();
+        // ... error checks
+    }
+    return productusers;  
+
+}
+async function getUsers (userid) {
+    try {
+        let pool = await sql.connect(config.sqldb)
+        let result = await pool.request()
+        .query`select * from users`;
+
+        sql.close();
+        pool.close();
+        
+        users = result.recordsets[0]
+
+    } catch (err) {
+        console.dir('Error on getUsers', err);
+        sql.close();
+        pool.close();
+        // ... error checks
+    }
+    return users;  
+}
 async function getProjects (productid) {
     try {
         let pool = await sql.connect(config.sqldb)
@@ -109,6 +163,16 @@ const RootQuery = new GraphQLObjectType({
                 return projects;
             }
         },
+        users:{
+            type: new GraphQLList(UserType),
+            args:{
+                userid:{type:GraphQLInt}
+                },            
+            resolve(parentValue, args){  
+                users = getUsers(args.userid); 
+                return users;                      
+            }
+        },
         products:{
             type: new GraphQLList(ProductType),
             args:{
@@ -119,7 +183,7 @@ const RootQuery = new GraphQLObjectType({
 
                 return products;                      
             }
-        }            
+        }             
     }
 
 });

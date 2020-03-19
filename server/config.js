@@ -1,7 +1,7 @@
  module.exports = {
   "sqldb": {
-      user: 'sqlteam',
-      password: 'sqlteam',
+      user: 'graphql',
+      password: 'graphql',
       server: 'localhost', 
       database: 'graphql'
   }
