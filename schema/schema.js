@@ -77,7 +77,6 @@ async function getProducts (productid) {
 
 async function getProductUsers (productid) {
     try {
-        console.log('getProductUsers productid ->', productid);
         let pool = await sql.connect(config.sqldb)
         let result = await pool.request()
         .query`select u.* from dbo.productusers p join dbo.users u on p.userid = u.userid where productid = ${productid}`;
