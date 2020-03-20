@@ -127,7 +127,7 @@ select top 5000 userid, p.productid
 	begin
 		SELECT [projectid]
 				,[projectname]
-			FROM [dbo].[projects]
+			FROM [dbo].[project]
 			where @projectId is null or projectid = @projectId
 	end
 	go

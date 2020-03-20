@@ -4,8 +4,8 @@
 
 const graphql = require('graphql');
 
-const {getProducts, getUsers, getProjects} = require('../src/queries/queries');
-const {ProjectType, UserType, ProductType} = require('../src/types/types');
+const {getProducts, getUsers, getProjects} = require('../queries/queries');
+const {ProjectType, UserType, ProductType} = require('../types/types');
 
 let projects= [];
 let products = [];
